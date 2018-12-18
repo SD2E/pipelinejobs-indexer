@@ -40,7 +40,7 @@ tests-integration:
 tests-pytest:
 	bash $(SCRIPT_DIR)/run_container_process.sh $(PYTHON) -m "pytest" $(PYTEST_DIR) $(PYTEST_OPTS)
 
-tests-local: init tests-local-json-index
+tests-local: tests-local-json-index
 
 tests-local-json-index:
 	bash $(SCRIPT_DIR)/run_container_message.sh tests/data/index01.json

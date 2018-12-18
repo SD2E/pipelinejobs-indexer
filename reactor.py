@@ -4,7 +4,7 @@ import json
 from attrdict import AttrDict
 from jsonschema import ValidationError
 from pprint import pprint
-from urllib.parse import urlparse
+from urllib.parse import unquote
 
 from reactors.runtime import Reactor, agaveutils
 from datacatalog.managers.pipelinejobs import ManagedPipelineJobInstance
@@ -53,7 +53,6 @@ def main():
 
     rx.logger.debug('SCHEMA DETECTED: {}'.format(action))
 
-
     PARAMS = [('event', 'event', 'index'),
               ('uuid', 'uuid', None),
               ('token', 'token', None),
@@ -67,17 +66,17 @@ def main():
     parameters = dict()
     if cb['level'] is not None:
         parameters['processing_level'] = cb['level']
-    # TODO implement urldecode on ?filters
+    # TODO implement urldecode on ?filters parameter
     parsed_filters = list()
     if cb['filters'] is not None:
         for f in cb['filters']:
-            parsed_filters.append(urlparse(f))
+            parsed_filters.append(unquote(f))
         parameters['filters'] = parsed_filters
 
     if action in ['index', 'urlparams']:
         try:
-            store = ManagedPipelineJobInstance(mongodb=rx.settings.mongodb, job_uuid=cb['uuid'], agave=rx.client)
-            resp = store.index_archive_path(**parameters)
+            store = ManagedPipelineJobInstance(rx.settings.mongodb, cb['uuid'], agave=rx.client)
+            resp = store.index_archive_path(filters=cb['filters'], processing_level=cb['level'])
             if isinstance(resp, list):
                 # TODO : Send 'indexed' event to job (after extending it to handle them)
                 rx.on_success('Indexed {} files to PipelineJob {}. ({} usec)'.format(len(resp), cb['uuid'], rx.elapsed()))

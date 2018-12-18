@@ -1,44 +1,54 @@
 PIPELINE JOBS INDEXER
 =====================
 
-This Abaco actor that manages indexing of ManagedPipelineJob archive paths. It
-works in synergy with other Abaco actors that create jobs using the
-``ManagedPipelineJob`` class from ``python-datacatalog``. It accepts one type
-of JSON message via authenticated HTTP POST, which causes the indexing to
-take place.
+This Abaco actor indexes ManagedPipelineJob archive paths. It works in synergy
+with other actors that create jobs using the ``ManagedPipelineJob`` class from
+``python-datacatalog``. It accepts one type of JSON message via authenticated
+HTTP POST, which causes the indexing to take place.
 
-Indexing a Job
---------------
+How to Index a Job
+------------------
 
-Text
+The job indexing request must include the *uuid* for the originating job and
+an authorization token issued when the job was created. It may also include
+two optional parameters. The first is ``level`` which indicates the
+**processing level** for the files indexed to this job. The second is
+``filters`` which is a list of **url-encoded** Python regular expressions
+that are used to subselect files in the job's archive path for indexing. The
+default behavior if not ``filters`` are provided at all is for all files
+in the archive path to be set as ``generated_by`` the particular job.
 
-Use Case 1
-^^^^^^^^^^
+POST an index message
+^^^^^^^^^^^^^^^^^^^^^
 
 Text
 
 .. code-block:: json
 
     {
-      "uuid": "1073f4ff-c2b9-5190-bd9a-e6a406d9796a",
-      "data": {
-        "arbitrary": "key value data"
-      },
-      "name": "finish",
-      "token": "0dc73dc3ff39b49a"
+        "uuid": "1079f67e-0ef6-52fe-b4e9-d77875573860",
+        "filters": [
+            "sample%5C.uw_biofab%5C.141715",
+            "sample-uw_biofab-141715"
+        ],
+        "level": "1",
+        "token": "0dc73dc3ff39b49a"
     }
 
-Use Case 2
-^^^^^^^^^^
+.. note: The job ``state`` must be ``FINISHED`` or later for indexing.
 
-Text
+POST URL parameters
+^^^^^^^^^^^^^^^^^^^
+
+One may pass ``uuid``, ``level``, and ``token`` as URL parameters in lieu of
+POSTING them as a message. The ``filters`` key is not currently supported by
+this method.
 
 .. code-block:: shell
 
-    curl -XPOST --data '{"arbitrary": "key value data"}' \
+    curl -XPOST \
         https://<tenantUrl>/actors/v2/<actorId>/messages?uuid=1073f4ff-c2b9-5190-bd9a-e6a406d9796a&\
-        event=finish&token=0dc73dc3ff39b49a
-
+        level=1&token=0dc73dc3ff39b49a
 
 Authentication
 ^^^^^^^^^^^^^^
@@ -63,5 +73,5 @@ mechanisms by which this can happen:
 
     curl -XPOST --data '{"arbitrary": "key value data"}' \
         https://<tenantUrl>/actors/v2/<actorId>/messages?uuid=1073f4ff-c2b9-5190-bd9a-e6a406d9796a&\
-        name=finish&token=0dc73dc3ff39b49a&\
+        level=1&token=0dc73dc3ff39b49a&\
         x-nonce=TACC_XXXXxxxxYz
