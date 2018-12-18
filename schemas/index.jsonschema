@@ -1,0 +1,32 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "https://schema.catalog.sd2e.org/schemas/index_pipelinejob.json",
+	"title": "IndexPipelineJob",
+	"description": "Request indexing of a PipelineJob",
+	"type": "object",
+	"properties": {
+		"uuid": {
+			"description": "PipelineJob UUID",
+			"type": "string"
+		},
+        "patterns": {
+            "type": "array",
+            "description": "List of Python regular expressions defining which output files to associate with the job. Omit entirely if you do not want to apply filtering.",
+            "items": {
+                "type": "string"
+            }
+        },
+        "level": {
+            "description": "Defaults to '1' if not provided",
+            "$ref": "processing_level.json"
+        }
+		"token": {
+			"description": "Authorization token (issued when the job was created)",
+			"type": "string",
+			"minLength": 16,
+			"maxLength": 17
+		}
+	},
+	"required": ["uuid", "name"],
+	"additionalProperties": false
+}

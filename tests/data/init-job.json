@@ -1,0 +1,143 @@
+{
+    "derived_from": [
+        "1022efa3-4480-538f-a581-f1810fb4e0c3"
+    ],
+    "data": {
+        "archive": "true",
+        "inputs": {},
+        "appId": "urrutia-novel_chassis_app-0.1.0",
+        "parameters": {
+            "outname": "sample.uw_biofab.141715_MG1655_pJS007_LALT__backbone_replicate_2_time_5:hours_temp_37.0_arabinose_0_mM_IPTG_0.25_mM",
+            "path_read2": "/products/v1/55c8d93d-2115-53ba-ba05-446f47d7ff72/850e742e-e67a-5e99-bc04-c60d1eec9a41/f42d3f7f-07dc-596f-86f9-df75083e52cc/fun-wolf-20181127T173243Z/preprocessed/141715-M9-Kan-IPTG_S38_merged_R2_rRNA_free_reads.fastq.gz",
+            "path_read1": "/products/v1/55c8d93d-2115-53ba-ba05-446f47d7ff72/850e742e-e67a-5e99-bc04-c60d1eec9a41/f42d3f7f-07dc-596f-86f9-df75083e52cc/fun-wolf-20181127T173243Z/preprocessed/141715-M9-Kan-IPTG_S38_merged_R1_rRNA_free_reads.fastq.gz",
+            "path_dict_file": "/reference/novel_chassis/uma_refs/MG1655_pJS007_LALT__backbone/MG1655_pJS007_LALT__backbone.dict",
+            "path_ref_flat": "/reference/novel_chassis/uma_refs/modified.ecoli.MG1655.refFlat.txt",
+            "path_interval_file": "/reference/novel_chassis/uma_refs/MG1655_pJS007_LALT__backbone/MG1655_pJS007_LALT__backbone.interval_list",
+            "path_fasta": "/reference/novel_chassis/uma_refs/MG1655_pJS007_LALT__backbone/MG1655_pJS007_LALT__backbone.fa",
+            "path_gff": "/reference/novel_chassis/uma_refs/amin_genes.gff"
+        },
+        "name": "sample.uw_biofab.141715",
+        "archivePath": "",
+        "archiveSystem": "data-sd2e-community",
+        "maxRunTime": "48:00:00"
+    },
+    "last_event": "finish",
+    "state": "FINISHED",
+    "pipeline_uuid": "106bd127-e2d2-57ac-b9be-11ed06042e68",
+    "archive_system": "data-sd2e-community",
+    "archive_path": "/products/v2/1022efa34480538fa581f1810fb4e0c3/106bd127e2d257acb9be11ed06042e68",
+    "uuid": "1079f67e-0ef6-52fe-b4e9-d77875573860",
+    "task": "https://api.sd2e.org/actors/v2/5XmrM3XoZMBB5/executions/eLBVlMQZzQoAk",
+    "updated": "2018-12-08T13:23:41.000+0000",
+    "session": "fond-bug",
+    "generated_by": [
+        "106bd127-e2d2-57ac-b9be-11ed06042e68"
+    ],
+    "child_of": [],
+    "history": [
+        {
+            "date": "2018-12-08T12:50:45.000+0000",
+            "data": {
+                "maxRunTime": "48:00:00",
+                "inputs": {},
+                "archive": "true",
+                "parameters": {
+                    "path_read1": "/products/v1/55c8d93d-2115-53ba-ba05-446f47d7ff72/850e742e-e67a-5e99-bc04-c60d1eec9a41/f42d3f7f-07dc-596f-86f9-df75083e52cc/fun-wolf-20181127T173243Z/preprocessed/141715-M9-Kan-IPTG_S38_merged_R1_rRNA_free_reads.fastq.gz",
+                    "path_read2": "/products/v1/55c8d93d-2115-53ba-ba05-446f47d7ff72/850e742e-e67a-5e99-bc04-c60d1eec9a41/f42d3f7f-07dc-596f-86f9-df75083e52cc/fun-wolf-20181127T173243Z/preprocessed/141715-M9-Kan-IPTG_S38_merged_R2_rRNA_free_reads.fastq.gz",
+                    "path_fasta": "/reference/novel_chassis/uma_refs/MG1655_pJS007_LALT__backbone/MG1655_pJS007_LALT__backbone.fa",
+                    "path_gff": "/reference/novel_chassis/uma_refs/amin_genes.gff",
+                    "path_interval_file": "/reference/novel_chassis/uma_refs/MG1655_pJS007_LALT__backbone/MG1655_pJS007_LALT__backbone.interval_list",
+                    "path_ref_flat": "/reference/novel_chassis/uma_refs/modified.ecoli.MG1655.refFlat.txt",
+                    "path_dict_file": "/reference/novel_chassis/uma_refs/MG1655_pJS007_LALT__backbone/MG1655_pJS007_LALT__backbone.dict",
+                    "outname": "sample.uw_biofab.141715_MG1655_pJS007_LALT__backbone_replicate_2_time_5:hours_temp_37.0_arabinose_0_mM_IPTG_0.25_mM"
+                },
+                "archivePath": "",
+                "appId": "urrutia-novel_chassis_app-0.1.0",
+                "name": "sample.uw_biofab.141715",
+                "archiveSystem": "data-sd2e-community"
+            },
+            "name": "create"
+        },
+        {
+            "date": "2018-12-08T12:53:28.000+0000",
+            "data": {
+                "id": "2193855546692005400-242ac11b-0001-007",
+                "name": "sample.uw_biofab.141715",
+                "owner": "sd2eadm",
+                "appId": "urrutia-novel_chassis_app-0.1.0",
+                "executionSystem": "hpc-tacc-stampede2-urrutia",
+                "batchQueue": "normal",
+                "nodeCount": 1,
+                "processorsPerNode": 1,
+                "memoryPerNode": 1.0,
+                "maxRunTime": "48:00:00",
+                "archive": true,
+                "created": "2018-12-08T06:50:50.000-06:00",
+                "lastUpdated": "2018-12-08T06:52:33.000-06:00",
+                "archivePath": "/products/v2/1022efa34480538fa581f1810fb4e0c3/106bd127e2d257acb9be11ed06042e68",
+                "archiveSystem": "data-sd2e-community",
+                "outputPath": "sd2eadm/job-2193855546692005400-242ac11b-0001-007-sample-uw_biofab-141715",
+                "status": "RUNNING",
+                "submitTime": "2018-12-08T06:51:31.000-06:00",
+                "startTime": null,
+                "endTime": null,
+                "inputs": {},
+                "parameters": {
+                    "CONTAINER_IMAGE": [
+                        "jurrutia/novel_chassis_app:0.1.0"
+                    ],
+                    "path_fasta": "/reference/novel_chassis/uma_refs/MG1655_pJS007_LALT__backbone/MG1655_pJS007_LALT__backbone.fa",
+                    "path_ref_flat": "/reference/novel_chassis/uma_refs/modified.ecoli.MG1655.refFlat.txt",
+                    "path_read1": "/products/v1/55c8d93d-2115-53ba-ba05-446f47d7ff72/850e742e-e67a-5e99-bc04-c60d1eec9a41/f42d3f7f-07dc-596f-86f9-df75083e52cc/fun-wolf-20181127T173243Z/preprocessed/141715-M9-Kan-IPTG_S38_merged_R1_rRNA_free_reads.fastq.gz",
+                    "path_gff": "/reference/novel_chassis/uma_refs/amin_genes.gff",
+                    "path_dict_file": "/reference/novel_chassis/uma_refs/MG1655_pJS007_LALT__backbone/MG1655_pJS007_LALT__backbone.dict",
+                    "path_read2": "/products/v1/55c8d93d-2115-53ba-ba05-446f47d7ff72/850e742e-e67a-5e99-bc04-c60d1eec9a41/f42d3f7f-07dc-596f-86f9-df75083e52cc/fun-wolf-20181127T173243Z/preprocessed/141715-M9-Kan-IPTG_S38_merged_R2_rRNA_free_reads.fastq.gz",
+                    "path_interval_file": "/reference/novel_chassis/uma_refs/MG1655_pJS007_LALT__backbone/MG1655_pJS007_LALT__backbone.interval_list",
+                    "outname": "sample.uw_biofab.141715_MG1655_pJS007_LALT__backbone_replicate_2_time_5:hours_temp_37.0_arabinose_0_mM_IPTG_0.25_mM"
+                }
+            },
+            "name": "run"
+        },
+        {
+            "date": "2018-12-08T13:23:41.000+0000",
+            "data": {
+                "id": "2193855546692005400-242ac11b-0001-007",
+                "name": "sample.uw_biofab.141715",
+                "owner": "sd2eadm",
+                "appId": "urrutia-novel_chassis_app-0.1.0",
+                "executionSystem": "hpc-tacc-stampede2-urrutia",
+                "batchQueue": "normal",
+                "nodeCount": 1,
+                "processorsPerNode": 1,
+                "memoryPerNode": 1.0,
+                "maxRunTime": "48:00:00",
+                "archive": true,
+                "created": "2018-12-08T06:50:50.000-06:00",
+                "lastUpdated": "2018-12-08T07:23:17.000-06:00",
+                "archivePath": "/products/v2/1022efa34480538fa581f1810fb4e0c3/106bd127e2d257acb9be11ed06042e68",
+                "archiveSystem": "data-sd2e-community",
+                "outputPath": "sd2eadm/job-2193855546692005400-242ac11b-0001-007-sample-uw_biofab-141715",
+                "status": "FINISHED",
+                "submitTime": "2018-12-08T06:51:31.000-06:00",
+                "startTime": "2018-12-08T06:52:42.000-06:00",
+                "endTime": null,
+                "inputs": {},
+                "parameters": {
+                    "CONTAINER_IMAGE": [
+                        "jurrutia/novel_chassis_app:0.1.0"
+                    ],
+                    "path_fasta": "/reference/novel_chassis/uma_refs/MG1655_pJS007_LALT__backbone/MG1655_pJS007_LALT__backbone.fa",
+                    "path_ref_flat": "/reference/novel_chassis/uma_refs/modified.ecoli.MG1655.refFlat.txt",
+                    "path_read1": "/products/v1/55c8d93d-2115-53ba-ba05-446f47d7ff72/850e742e-e67a-5e99-bc04-c60d1eec9a41/f42d3f7f-07dc-596f-86f9-df75083e52cc/fun-wolf-20181127T173243Z/preprocessed/141715-M9-Kan-IPTG_S38_merged_R1_rRNA_free_reads.fastq.gz",
+                    "path_gff": "/reference/novel_chassis/uma_refs/amin_genes.gff",
+                    "path_dict_file": "/reference/novel_chassis/uma_refs/MG1655_pJS007_LALT__backbone/MG1655_pJS007_LALT__backbone.dict",
+                    "path_read2": "/products/v1/55c8d93d-2115-53ba-ba05-446f47d7ff72/850e742e-e67a-5e99-bc04-c60d1eec9a41/f42d3f7f-07dc-596f-86f9-df75083e52cc/fun-wolf-20181127T173243Z/preprocessed/141715-M9-Kan-IPTG_S38_merged_R2_rRNA_free_reads.fastq.gz",
+                    "path_interval_file": "/reference/novel_chassis/uma_refs/MG1655_pJS007_LALT__backbone/MG1655_pJS007_LALT__backbone.interval_list",
+                    "outname": "sample.uw_biofab.141715_MG1655_pJS007_LALT__backbone_replicate_2_time_5:hours_temp_37.0_arabinose_0_mM_IPTG_0.25_mM"
+                }
+            },
+            "name": "finish"
+        }
+    ],
+    "agent": "https://api.sd2e.org/actors/v2/5XmrM3XoZMBB5"
+}

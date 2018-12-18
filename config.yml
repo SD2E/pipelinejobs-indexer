@@ -1,0 +1,14 @@
+---
+debug: false
+downloaded: downloaded.json
+logs:
+  level: DEBUG
+  token: ~
+mongodb:
+  authn: ~
+  database: catalog_test
+
+only_extant_files: false
+storagesystems:
+  data-sd2e-community:
+    posix_path: /work/projects/SD2E-Community/prod/data
