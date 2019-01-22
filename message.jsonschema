@@ -4,7 +4,7 @@
 	"description": "Directly create a new PipelineJob",
 	"type": "object",
 	"properties": {
-		"pipeline_uuid": {
+		"job_uuid": {
 			"description": "UUID referring to a registered, active Pipeline",
 			"type": "string"
 		},
@@ -25,6 +25,6 @@
 			"description": "Object for passing runtime options to a pipeline (private)"
 		}
 	},
-	"required": ["pipeline_uuid", "archive_path", "data"],
+	"required": ["job_uuid", "archive_path", "data"],
 	"additionalProperties": false
 }

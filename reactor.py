@@ -29,7 +29,7 @@ def main():
     if mes == {}:
         try:
             jsonmsg = json.loads(rx.context.raw_message)
-            m = jsonmsg
+            mes = jsonmsg
         except Exception:
             pass
 
@@ -78,12 +78,22 @@ def main():
             store = ManagedPipelineJobInstance(rx.settings.mongodb, cb['uuid'], agave=rx.client)
             resp = store.index_archive_path(filters=cb['filters'], processing_level=cb['level'])
             if isinstance(resp, list):
-                # TODO : Send 'indexed' event to job (after extending it to handle them)
                 rx.on_success('Indexed {} files to PipelineJob {}. ({} usec)'.format(len(resp), cb['uuid'], rx.elapsed()))
+
+                # Send 'indexed' event to job via PipelineJobsManager
+                try:
+                    job_manager_id = rx.settings.pipelines.job_manager_id
+                    mgr_mes = {'uuid': cb['uuid'], 'name': 'indexed'}
+                    rx.send_message(job_manager_id, mgr_mes)
+                except Exception as mexc:
+                    rx.logger.warning(
+                        'Failed to send "indexed" event to job {}: {}'.format(
+                            cb['uuid', mexc]))
+
         except Exception as iexc:
-            rx.on_failure('Unable to complete indexing', iexc)
+            rx.on_failure('Failed to complete indexing', iexc)
     else:
-        rx.on_failure('Failed to interpret POST as index request')
+        rx.on_failure('Failed to interpret request as indexing request')
 
 if __name__ == '__main__':
     main()

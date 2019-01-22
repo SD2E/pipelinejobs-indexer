@@ -1,27 +1,32 @@
 PIPELINE JOBS INDEXER
 =====================
 
-This Abaco actor indexes ManagedPipelineJob archive paths. It works in synergy
-with other actors that create jobs using the ``ManagedPipelineJob`` class from
-``python-datacatalog``. It accepts one type of JSON message via authenticated
-HTTP POST, which causes the indexing to take place.
+This Abaco actor indexes the contents of ManagedPipelineJob
+archive paths. It works in synergy with other actors that manage jobs
+via the ``ManagedPipelineJob``. It accepts a JSON message with one
+schema via authenticated HTTP POST, which causes the indexing to
+begin, assuming the job is in a valid state for indexing.
 
-How to Index a Job
-------------------
+Manually Indexing a Job
+-----------------------
 
-The job indexing request must include the *uuid* for the originating job and
-an authorization token issued when the job was created. It may also include
-two optional parameters. The first is ``level`` which indicates the
-**processing level** for the files indexed to this job. The second is
-``filters`` which is a list of **url-encoded** Python regular expressions
-that are used to subselect files in the job's archive path for indexing. The
-default behavior if not ``filters`` are provided at all is for all files
-in the archive path to be set as ``generated_by`` the particular job.
+**PipelineJobsManager** attempts to automatically start an indexing
+task when a job enters the ``FINISHED`` state. Indexing can
+also be requested manually. To accomplish this, craft a message with
+the following values:
+
+1. ``uuid`` - the job to be indexed
+2. ``token`` - the job's unique update token
+3. ``level`` - the processing level for the **file** record
+4. ``filters`` - a list of **url-encoded** Python regular expressions to select a subset of the contents of ``archive_path``
+
+Send it to *PipelineJobsIndexer** via HTTP POST.
 
 POST an index message
 ^^^^^^^^^^^^^^^^^^^^^
 
-Text
+Here is an example message to index outputs from job ``1079f67e-0ef6-52fe-b4e9-d77875573860`` as
+level "1" products, sub-selecting only files matching ``sample\.uw_biofab\.141715`` and ``sample-uw_biofab-141715``.
 
 .. code-block:: json
 
@@ -40,9 +45,10 @@ Text
 POST URL parameters
 ^^^^^^^^^^^^^^^^^^^
 
-One may pass ``uuid``, ``level``, and ``token`` as URL parameters in lieu of
-POSTING them as a message. The ``filters`` key is not currently supported by
-this method.
+Values for ``uuid``, ``level``, and ``token`` may be passed as URL parameters
+in lieu of including them in the POST message. Due to the complexity of URL-
+encoding regular expressions, the ``filters`` key is not currently supported by
+this approach.
 
 .. code-block:: shell
 
@@ -53,7 +59,7 @@ this method.
 Authentication
 ^^^^^^^^^^^^^^
 
-All POSTs to a ``PipelineJobsIndexer`` must be authenticated. There are two
+All POSTs to **PipelineJobsIndexer** must be authenticated. There are two
 mechanisms by which this can happen:
 
   1. Send a valid TACC.cloud Oauth2 Bearer token with the request

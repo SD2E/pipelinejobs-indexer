@@ -18,8 +18,7 @@
         },
         "level": {
             "description": "Defaults to '1' if not provided",
-            "$ref": "processing_level.json"
-        },
+            "$ref": "processing_level.json"        },
 		"token": {
 			"description": "Authorization token (issued when the job was created)",
 			"type": "string",
