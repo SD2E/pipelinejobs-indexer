@@ -33,10 +33,10 @@ def main():
         except Exception:
             pass
 
-#    ['event', 'agavejobs', 'create', 'delete']
+#    ['event', 'agavejobs', 'index', 'indexed']
     action = 'urlparams'
     try:
-        for a in ['index']:
+        for a in ['index', 'indexed']:
             try:
                 rx.logger.info('Testing against {} schema'.format(a))
                 rx.validate_message(
@@ -53,25 +53,31 @@ def main():
 
     rx.logger.debug('SCHEMA DETECTED: {}'.format(action))
 
-    PARAMS = [('event', 'event', 'index'),
+    PARAMS = [('name', 'name', None),
               ('uuid', 'uuid', None),
               ('token', 'token', None),
               ('level', 'level', '1'),
               ('filters', 'filters', None)]
 
+    # Populate from URL parameters first, then override with params
+    # from the inbound message
     cb = dict()
     for param, key, default in PARAMS:
-        cb[key] = rx.context.get(param, mes.get(param, default))
+        cb[key] = mes.get(param, rx.context.get(param, default))
 
-    parameters = dict()
-    if cb['level'] is not None:
-        parameters['processing_level'] = cb['level']
+    # Transform JSON string representation of filters so they can be used
+    # as Python regex. This is enough for filters passed from message but
+    # not a URL parameter.
     # TODO implement urldecode on ?filters parameter
     parsed_filters = list()
     if cb['filters'] is not None:
         for f in cb['filters']:
             parsed_filters.append(unquote(f))
-        parameters['filters'] = parsed_filters
+        cb['filters'] = parsed_filters
+
+    # Simple case - we're just processing 'indexed'
+    if action == 'indexed':
+        pass
 
     if action in ['index', 'urlparams']:
         try:

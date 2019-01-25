@@ -1,13 +1,18 @@
 {
 	"$schema": "http://json-schema.org/draft-07/schema#",
-	"$id": "https://schema.catalog.sd2e.org/schemas/index_pipelinejob.json",
-	"title": "IndexPipelineJob",
-	"description": "Request indexing of a PipelineJob",
+	"$id": "https://schema.catalog.sd2e.org/schemas/pipelinejob_index.json",
+	"title": "PipelineJobIndexEvent",
+	"description": "Request indexing of a completed PipelineJob's archive path",
 	"type": "object",
 	"properties": {
 		"uuid": {
-			"description": "PipelineJob UUID",
-			"type": "string"
+			"$ref": "pipelinejob_uuid.json"
+		},
+		"name": {
+			"type": "string",
+			"enum": [
+				"index"
+			]
 		},
         "filters": {
             "type": "array",
@@ -17,15 +22,12 @@
             }
         },
         "level": {
-            "description": "Defaults to '1' if not provided",
-            "$ref": "processing_level.json"        },
+            "$ref": "processing_level.json"
+		},
 		"token": {
-			"description": "Authorization token (issued when the job was created)",
-			"type": "string",
-			"minLength": 16,
-			"maxLength": 17
+			"$ref": "update_token.json"
 		}
 	},
-	"required": ["uuid"],
+	"required": ["uuid", "name"],
 	"additionalProperties": false
 }

@@ -1,0 +1,23 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "https://schema.catalog.sd2e.org/schemas/pipelinejob_indexed.json",
+	"title": "PipelineJobIndexedEvent",
+	"description": "Mark PipelineJob indexing as completed.",
+	"type": "object",
+	"properties": {
+		"uuid": {
+			"$ref": "pipelinejob_uuid.json"
+		},
+		"name": {
+			"type": "string",
+			"enum": [
+				"indexed"
+			]
+		},
+		"token": {
+			"$ref": "update_token.json"
+		}
+	},
+	"required": ["uuid", "name"],
+	"additionalProperties": false
+}
