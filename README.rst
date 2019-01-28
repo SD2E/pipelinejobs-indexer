@@ -1,83 +1,81 @@
-PIPELINE JOBS INDEXER
-=====================
+====================
+PipelineJobs Indexer
+====================
 
-This Abaco actor indexes the contents of ManagedPipelineJob
-archive paths. It works in synergy with other actors that manage jobs
-via the ``ManagedPipelineJob``. It accepts a JSON message with one
-schema via authenticated HTTP POST, which causes the indexing to
-begin, assuming the job is in a valid state for indexing.
+This Reactor indexes the contents of **ManagedPipelineJob** archive paths. It
+implements two actions: **index** and **indexed**. It is normally run
+automatically via **PipelineJobs Manager** when a job enters the **FINISHED**
+state, but can also be activated on its own.
 
-Manually Indexing a Job
------------------------
+Index a Job
+-----------
 
-**PipelineJobsManager** attempts to automatically start an indexing
-task when a job enters the ``FINISHED`` state. Indexing can
-also be requested manually. To accomplish this, craft a message with
-the following values:
+**PipelineJobs Indexer** can receive an **index** request via:
 
-1. ``uuid`` - the job to be indexed
-2. ``token`` - the job's unique update token
-3. ``level`` - the processing level for the **file** record
-4. ``filters`` - a list of **url-encoded** Python regular expressions to select a subset of the contents of ``archive_path``
+#. A JSON-formatted **pipelinejob_index** document
+#. URL parameters that replicate a **pipelinejob_index** document
 
-Send it to *PipelineJobsIndexer** via HTTP POST.
+Here are the critical fields to request indexing:
 
-POST an index message
+1. ``uuid`` ID for job to be indexed (must validate as a known job)
+2. ``name`` This is always **index**
+3. ``token`` The job's update token (optional for now)
+4. ``level`` The processing level for output files (default: **1**)
+5. ``filters`` List of **url-encoded** Python regex that select a subset of ``archive_path``
+
+Index Request as JSON
 ^^^^^^^^^^^^^^^^^^^^^
 
-Here is an example message to index outputs from job ``1079f67e-0ef6-52fe-b4e9-d77875573860`` as
-level "1" products, sub-selecting only files matching ``sample\.uw_biofab\.141715`` and ``sample-uw_biofab-141715``.
+This message will index outputs of job ``1079f67e-0ef6-52fe-b4e9-d77875573860`` as
+level "2" products, sub-selecting only files matching ``sample\.uw_biofab\.141715`` and ``sample-uw_biofab-141715``.
 
 .. code-block:: json
 
     {
         "uuid": "1079f67e-0ef6-52fe-b4e9-d77875573860",
+        "name": "index",
         "filters": [
             "sample%5C.uw_biofab%5C.141715",
             "sample-uw_biofab-141715"
         ],
-        "level": "1",
+        "level": "2",
         "token": "0dc73dc3ff39b49a"
     }
 
-.. note: The job ``state`` must be ``FINISHED`` or later for indexing.
-
-POST URL parameters
-^^^^^^^^^^^^^^^^^^^
-
-Values for ``uuid``, ``level``, and ``token`` may be passed as URL parameters
-in lieu of including them in the POST message. Due to the complexity of URL-
-encoding regular expressions, the ``filters`` key is not currently supported by
-this approach.
+Index Request as URL Params
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: shell
 
     curl -XPOST \
         https://<tenantUrl>/actors/v2/<actorId>/messages?uuid=1073f4ff-c2b9-5190-bd9a-e6a406d9796a&\
-        level=1&token=0dc73dc3ff39b49a
+        level=2&token=0dc73dc3ff39b49a&name=index --data '{"filters": ["sample.uw_biofab.141715", "sample-uw_biofab-141715"]}'
+
+.. note:: Remember that ``filters`` cannot currently be passed as URL parameters.
+
+Mark as Indexed
+---------------
+
+**PipelineJobs Indexer** can receive an **index** request via JSON message
+or URL parameters. Here is an example.
+
+.. code-block:: json
+
+    {
+        "uuid": "1079f67e-0ef6-52fe-b4e9-d77875573860",
+        "name": "indexed",
+        "token": "0dc73dc3ff39b49a"
+    }
+
+**PipelineJobs Indexer** sends itself an **indexed** message after completing
+an indexing action. Thus, it is not usually necessary to send one manually and
+in fact, should be avoided. Documentation on the **indexed** event is included
+here mostly for the sake of completeness.
 
 Authentication
-^^^^^^^^^^^^^^
+--------------
 
-All POSTs to **PipelineJobsIndexer** must be authenticated. There are two
-mechanisms by which this can happen:
+POSTs to a **PipelineJobs Indexer** must be authenticated by one of two means:
 
   1. Send a valid TACC.cloud Oauth2 Bearer token with the request
   2. Include a special URL parameter called a **nonce** with the HTTP request
-
-.. code-block:: shell
-   :caption: "Sending a Bearer Token"
-
-    curl -XPOST -H "Authorization: Bearer 969d11396c43b0b810387e4da840cb37" \
-        --data '{"uuid": "1073f4ff-c2b9-5190-bd9a-e6a406d9796a", \
-        "token": "0dc73dc3ff39b49a",\
-        "name": "finish"}' \
-        https://<tenantUrl>/actors/v2/<actorId>/messages
-
-.. code-block:: shell
-   :caption: "Using a Nonce"
-
-    curl -XPOST --data '{"arbitrary": "key value data"}' \
-        https://<tenantUrl>/actors/v2/<actorId>/messages?uuid=1073f4ff-c2b9-5190-bd9a-e6a406d9796a&\
-        level=1&token=0dc73dc3ff39b49a&\
-        x-nonce=TACC_XXXXxxxxYz
