@@ -79,3 +79,16 @@ POSTs to a **PipelineJobs Indexer** must be authenticated by one of two means:
 
   1. Send a valid TACC.cloud Oauth2 Bearer token with the request
   2. Include a special URL parameter called a **nonce** with the HTTP request
+
+JSON Schemas
+------------
+
+.. literalinclude:: schemas/index.jsonschema
+   :language: json
+   :linenos:
+   :caption: pipelinejob_index
+
+.. literalinclude:: schemas/indexed.jsonschema
+   :language: json
+   :linenos:
+   :caption: pipelinejob_indexed
