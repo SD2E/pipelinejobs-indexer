@@ -53,18 +53,18 @@ def main():
 
     rx.logger.debug('SCHEMA DETECTED: {}'.format(action))
 
-    PARAMS = [('name', 'name', None),
-              ('uuid', 'uuid', None),
+    PARAMS = [('uuid', 'uuid', None),
               ('token', 'token', None),
               ('level', 'level', '1'),
               ('filters', 'filters', None)]
 
-    # Populate from URL parameters first, then override with params
-    # from the inbound message
+    # Look in the message, then in context, then in environment for values
     cb = dict()
     try:
         for param, key, default in PARAMS:
-            cb[key] = mes.get(param, rx.context.get(param, default))
+            cb[key] = mes.get(
+                param, rx.context.get(
+                    param, os.environ.get(param, default)))
             rx.logger.debug('param:{}={}'.format(param, cb[key]))
     except Exception as exc:
         rx.on_failure(exc)
@@ -80,7 +80,15 @@ def main():
 
     # Simple case - we're just processing 'indexed'
     if action == 'indexed':
-        pass
+        try:
+            store = ManagedPipelineJobInstance(rx.settings.mongodb, cb['uuid'], agave=rx.client)
+            resp = store.indexed(token=cb['token'])
+            # job_manager_id = rx.settings.pipelines.job_manager_id
+            # mgr_mes = {'uuid': cb['uuid'], 'name': 'indexed'}
+            # rx.send_message(job_manager_id, mgr_mes)
+        except Exception as mexc:
+            rx.logger.warning(
+                'Failed to send "indexed": {}'.format(mexc))
 
     if action in ['index', 'urlparams']:
         try:
