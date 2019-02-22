@@ -1,6 +1,8 @@
 import os
 import sys
+import traceback
 import json
+import logging
 from attrdict import AttrDict
 from jsonschema import ValidationError
 from pprint import pprint
@@ -25,6 +27,13 @@ def main():
 
     rx = Reactor()
     mes = AttrDict(rx.context.message_dict)
+
+    def exception_hook(exc_type, exc_value, exc_traceback):
+        rx.logger.critical(
+            "Uncaught exception",
+            exc_info=(exc_type, exc_value, exc_traceback)
+        )
+    sys.excepthook = exception_hook
 
     if mes == {}:
         try:
@@ -93,7 +102,7 @@ def main():
     if action in ['index', 'urlparams']:
         try:
             store = ManagedPipelineJobInstance(rx.settings.mongodb, cb['uuid'], agave=rx.client)
-            resp = store.index(level=cb['level'], filters=cb['filters'], token=cb['token'], fixity=True)
+            resp = store.index(level=cb['level'], filters=cb['filters'], fixity=True, token=cb['token'])
             # resp = store.index_archive_path(filters=cb['filters'], processing_level=cb['level'])
             if isinstance(resp, list):
                 rx.on_success('Indexed {} files to PipelineJob {}. ({} usec)'.format(len(resp), cb['uuid'], rx.elapsed()))
