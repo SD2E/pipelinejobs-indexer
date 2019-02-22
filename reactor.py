@@ -65,6 +65,7 @@ def main():
     try:
         for param, key, default in PARAMS:
             cb[key] = mes.get(param, rx.context.get(param, default))
+            rx.logger.debug('param:{}={}'.format(param, cb[key]))
     except Exception as exc:
         rx.on_failure(exc)
     # Transform JSON string representation of filters so they can be used
@@ -84,24 +85,24 @@ def main():
     if action in ['index', 'urlparams']:
         try:
             store = ManagedPipelineJobInstance(rx.settings.mongodb, cb['uuid'], agave=rx.client)
-            resp = store.index_archive_path(filters=cb['filters'], processing_level=cb['level'])
+            resp = store.index(level=cb['level'], filters=cb['filters'], token=cb['token'], fixity=True)
+            # resp = store.index_archive_path(filters=cb['filters'], processing_level=cb['level'])
             if isinstance(resp, list):
                 rx.on_success('Indexed {} files to PipelineJob {}. ({} usec)'.format(len(resp), cb['uuid'], rx.elapsed()))
 
                 # Send 'indexed' event to job via PipelineJobsManager
                 try:
-                    job_manager_id = rx.settings.pipelines.job_manager_id
-                    mgr_mes = {'uuid': cb['uuid'], 'name': 'indexed'}
-                    rx.send_message(job_manager_id, mgr_mes)
+                    resp = store.indexed(token=cb['token'])
+                    # job_manager_id = rx.settings.pipelines.job_manager_id
+                    # mgr_mes = {'uuid': cb['uuid'], 'name': 'indexed'}
+                    # rx.send_message(job_manager_id, mgr_mes)
                 except Exception as mexc:
                     rx.logger.warning(
-                        'Failed to send "indexed" event to job {}: {}'.format(
-                            cb['uuid', mexc]))
-
+                        'Failed to send "indexed": {}'.format(mexc))
         except Exception as iexc:
-            rx.on_failure('Failed to complete indexing', iexc)
+            rx.on_failure('Failed to accomplish indexing', iexc)
     else:
-        rx.on_failure('Failed to interpret request as indexing request')
+        rx.on_failure('Failed to interpret indexing request')
 
 if __name__ == '__main__':
     main()
