@@ -62,9 +62,11 @@ def main():
     # Populate from URL parameters first, then override with params
     # from the inbound message
     cb = dict()
-    for param, key, default in PARAMS:
-        cb[key] = mes.get(param, rx.context.get(param, default))
-
+    try:
+        for param, key, default in PARAMS:
+            cb[key] = mes.get(param, rx.context.get(param, default))
+    except Exception as exc:
+        rx.on_failure(exc)
     # Transform JSON string representation of filters so they can be used
     # as Python regex. This is enough for filters passed from message but
     # not a URL parameter.

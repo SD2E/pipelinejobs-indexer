@@ -10,7 +10,7 @@ logs:
 
 mongodb:
   authn: ~
-  database: catalog_test
+  database: catalog_staging
 
 pipelines:
   pipeline_uuid: ~
