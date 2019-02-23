@@ -62,6 +62,9 @@ def main():
 
     rx.logger.debug('SCHEMA DETECTED: {}'.format(action))
 
+    for k, v in os.environ.items():
+        rx.logger.debug('env:{}={}'.format(k, v))
+
     PARAMS = [('uuid', 'uuid', None),
               ('token', 'token', None),
               ('level', 'level', '1'),
@@ -105,7 +108,7 @@ def main():
             resp = store.index(level=cb['level'], filters=cb['filters'], fixity=True, token=cb['token'])
             # resp = store.index_archive_path(filters=cb['filters'], processing_level=cb['level'])
             if isinstance(resp, list):
-                rx.on_success('Indexed {} files to PipelineJob {}. ({} usec)'.format(len(resp), cb['uuid'], rx.elapsed()))
+                rx.logger.info('Indexed {} files to PipelineJob {}. ({} usec)'.format(len(resp), cb['uuid'], rx.elapsed()))
 
                 # Send 'indexed' event to job via PipelineJobsManager
                 try:
