@@ -6,7 +6,7 @@
 	"type": "object",
 	"properties": {
 		"uuid": {
-			"$ref": "pipelinejob_uuid.json"
+			"type": "string"
 		},
 		"name": {
 			"type": "string",
@@ -14,17 +14,9 @@
 				"index"
 			]
 		},
-        "filters": {
-            "type": "array",
-            "oneOf": [
-                {
-                    "$ref": "archive_patterns.json"
-                },
-                {
-                    "$ref": "product_patterns.json"
-                }
-            ],
-			"minCount": 1
+		"filters": {
+			"type": "array",
+			"items": {"type": "object"}
         },
         "level": {
             "$ref": "processing_level.json"
