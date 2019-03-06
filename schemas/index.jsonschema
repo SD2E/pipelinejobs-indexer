@@ -16,10 +16,15 @@
 		},
         "filters": {
             "type": "array",
-            "description": "List of Python regular expressions defining which output files to associate with the job. Omit entirely if you do not want to apply filtering.",
-            "items": {
-                "type": "string"
-            }
+            "oneOf": [
+                {
+                    "$ref": "archive_patterns.json"
+                },
+                {
+                    "$ref": "product_patterns.json"
+                }
+            ],
+			"minCount": 1
         },
         "level": {
             "$ref": "processing_level.json"
