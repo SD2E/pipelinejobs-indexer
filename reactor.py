@@ -89,11 +89,11 @@ def main():
     # as Python regex. This is enough for filters passed from message but
     # not a URL parameter.
     # TODO implement urldecode on ?filters parameter
-    parsed_filters = list()
-    if cb["filters"] is not None:
-        for f in cb["filters"]:
-            parsed_filters.append(unquote(f))
-        cb["filters"] = parsed_filters
+    parsed_filters = cb["filters"]
+    # if cb["filters"] is not None:
+    #     for f in cb["filters"]:
+    #         parsed_filters.append(unquote(f))
+    #     cb["filters"] = parsed_filters
 
     # Simple case - we're just processing 'indexed'
     if action == "indexed":
