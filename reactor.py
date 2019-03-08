@@ -107,7 +107,7 @@ def main():
                 rx.settings.mongodb, cb["uuid"], agave=rx.client
             )
             # TODO - Pass in generated_by=config#pipelines.process_uuid
-            json.dumps(cb, indent=4)
+            print(json.dumps(cb, indent=2))
             # rx.logger.info("cb.filters", cb["filters"])
             # rx.logger.info("cb.token", cb["token"])
             resp = store.index(
@@ -116,7 +116,7 @@ def main():
                 filters=cb["filters"],
                 generated_by=[rx.settings.pipelines.process_uuid],
             )
-            json.dumps(resp, indent=4)
+            print(json.dumps(resp, indent=2))
             rx.logger.info("response", resp)
             # resp = store.index_archive_path(filters=cb['filters'], processing_level=cb['level'])
             if isinstance(resp, list):
