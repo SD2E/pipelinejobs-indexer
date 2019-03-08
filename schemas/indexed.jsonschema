@@ -1,6 +1,6 @@
 {
 	"$schema": "http://json-schema.org/draft-07/schema#",
-	"$id": "https://schema.catalog.sd2e.org/schemas/pipelinejob_indexed.json",
+	"$id": "https://schema.catalog.sd2e.org/schemas/pipelinejob_indexed_event.json",
 	"title": "PipelineJobIndexedEvent",
 	"description": "Mark PipelineJob indexing as completed.",
 	"type": "object",

@@ -1,8 +1,8 @@
 {
 	"$schema": "http://json-schema.org/draft-07/schema#",
-	"$id": "https://schema.catalog.sd2e.org/schemas/pipelinejob_index.json",
-	"title": "PipelineJobIndexEvent",
-	"description": "Request indexing of a completed PipelineJob's archive path",
+	"$id": "https://schema.catalog.sd2e.org/schemas/pipelinejob_index_event.json",
+	"title": "PipelineJobIndexRequestEvent",
+	"description": "Request indexing of a ManagedPipelineJob archive path",
 	"type": "object",
 	"properties": {
 		"uuid": {
