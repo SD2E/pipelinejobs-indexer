@@ -30,13 +30,6 @@ def main():
     rx = Reactor()
     mes = AttrDict(rx.context.message_dict)
 
-    def exception_hook(exc_type, exc_value, exc_traceback):
-        rx.logger.critical(
-            "Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback)
-        )
-
-    sys.excepthook = exception_hook
-
     if mes == {}:
         try:
             jsonmsg = json.loads(rx.context.raw_message)
@@ -65,8 +58,8 @@ def main():
 
     rx.logger.debug("Schema: {}".format(action))
 
-    for k, v in os.environ.items():
-        rx.logger.debug("env:{}={}".format(k, v))
+    # for k, v in os.environ.items():
+    #     rx.logger.debug("env:{}={}".format(k, v))
 
     PARAMS = [
         ("uuid", "uuid", None),
@@ -114,12 +107,17 @@ def main():
                 rx.settings.mongodb, cb["uuid"], agave=rx.client
             )
             # TODO - Pass in generated_by=config#pipelines.process_uuid
+            json.dumps(cb, indent=4)
+            # rx.logger.info("cb.filters", cb["filters"])
+            # rx.logger.info("cb.token", cb["token"])
             resp = store.index(
                 token=cb["token"],
                 transition=True,
                 filters=cb["filters"],
                 generated_by=[rx.settings.pipelines.process_uuid],
             )
+            json.dumps(resp, indent=4)
+            rx.logger.info("response", resp)
             # resp = store.index_archive_path(filters=cb['filters'], processing_level=cb['level'])
             if isinstance(resp, list):
                 rx.logger.info(
@@ -136,6 +134,12 @@ def main():
                     # rx.send_message(job_manager_id, mgr_mes)
                 except Exception as mexc:
                     rx.logger.warning('Failed to send "indexed": {}'.format(mexc))
+            else:
+                rx.logger.info(
+                    "Indexed and transitioned to {}".format(
+                        resp.get("state", "Unknown")
+                    )
+                )
         except Exception as iexc:
             rx.on_failure("Failed to accomplish indexing", iexc)
     else:
