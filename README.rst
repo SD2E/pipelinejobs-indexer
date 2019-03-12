@@ -7,9 +7,23 @@ implements two actions: **index** and **indexed**. It is normally run
 automatically via **PipelineJobs Manager** when a job enters the **FINISHED**
 state, but can also be activated on its own.
 
+Aliases
+-------
+Rather than track Abaco actorIds, various versions of this Reactor are
+available using  Abaco's new *aliases* feature.
+
++-------------+-----------------------------------------+
+| Version     | Alias                                   |
++=============+=========================================+
+| Production  | ``jobs-indexer.prod``, ``jobs-indexer`` |
++-------------+-----------------------------------------+
+| Staging     | NA                                      |
++-------------+-----------------------------------------+
+| Development |``jobs-indexer.dev``                     |
++-------------+-----------------------------------------+
+
 Index a Job
 -----------
-
 **PipelineJobs Indexer** can receive an **index** request via:
 
 #. A JSON-formatted **pipelinejob_index** document
@@ -25,9 +39,8 @@ Here are the critical fields to request indexing:
 
 Index Request as JSON
 ^^^^^^^^^^^^^^^^^^^^^
-
 This message will index outputs of job ``1079f67e-0ef6-52fe-b4e9-d77875573860`` as
-level "2" products, sub-selecting only files matching ``sample\.uw_biofab\.141715`` and ``sample-uw_biofab-141715``.
+level "1" products, sub-selecting only files matching ``.bam`` and ``.sam`.
 
 .. code-block:: json
 
@@ -35,53 +48,58 @@ level "2" products, sub-selecting only files matching ``sample\.uw_biofab\.14171
         "uuid": "1079f67e-0ef6-52fe-b4e9-d77875573860",
         "name": "index",
         "filters": [
-            "sample%5C.uw_biofab%5C.141715",
-            "sample-uw_biofab-141715"
+            {"level":"1","patterns":[".bam$",".sam$"]}
         ],
-        "level": "2",
+        "level": "1",
         "token": "0dc73dc3ff39b49a"
     }
 
-Index Request as URL Params
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The message could be sent this using curl:
 
 .. code-block:: shell
 
     curl -XPOST \
-        https://<tenantUrl>/actors/v2/<actorId>/messages?uuid=1073f4ff-c2b9-5190-bd9a-e6a406d9796a&\
-        level=2&token=0dc73dc3ff39b49a&name=index --data '{"filters": ["sample.uw_biofab.141715", "sample-uw_biofab-141715"]}'
+        https://<tenantUrl>/actors/v2/jobs-indexer.prg/messages?token=0dc73dc3ff39b49a --data '{"uuid":"1079f67e-0ef6-52fe-b4e9-d77875573860","name":"index","filters":[{"level":"1","patterns":[".bam$",".sam$"]}],"level":"1"}'
 
-.. note:: Remember that ``filters`` cannot currently be passed as URL parameters.
+Or using the Abaco CLI like so:
 
-Mark as Indexed
----------------
+.. code-block:: shell
 
-**PipelineJobs Indexer** can receive an **index** request via JSON message
-or URL parameters. Here is an example.
+    python -m scripts.token --key h8Ewzt2CUeAhn9sHHK5EtMn7pz4nA
+    Admin Token: ad8428a05f63d948
+    export atok=ad8428a05f63d948
+    abaco run -V -m '{"name": "index", "uuid":"1079f67e-0ef6-52fe-b4e9-d77875573860","filters":[{"level":"1","patterns":[".bam$",".sam$"]}]}' -q token=$atok jobs-indexer.prod
 
-.. code-block:: json
 
-    {
-        "uuid": "1079f67e-0ef6-52fe-b4e9-d77875573860",
-        "name": "indexed",
-        "token": "0dc73dc3ff39b49a"
-    }
+Manually Marking a Job as Indexed
+---------------------------------
 
-**PipelineJobs Indexer** sends itself an **indexed** message after completing
-an indexing action. Thus, it is not usually necessary to send one manually and
-in fact, should be avoided. Documentation on the **indexed** event is included
-here mostly for the sake of completeness.
+The jobs-indexer will automatically send an **indexed** event to the target
+job when indexing completes. Sometimes, though, a job might end up stuck in
+the ``INDEXING`` state. To manually advance it, send it an **indexed** event.
+
+.. code-block:: shell
+
+    python -m scripts.token --key h8Ewzt2CUeAhn9sHHK5EtMn7pz4nA
+    Admin Token: ad8428a05f63d948
+    export atok=ad8428a05f63d948
+    abaco run -V -m '{"name": "indexed", "uuid":"1079f67e-0ef6-52fe-b4e9-d77875573860"}' -q token=$atok jobs-indexer.prod
 
 Authentication
 --------------
 
-POSTs to a **PipelineJobs Indexer** must be authenticated by one of two means:
-
-  1. Send a valid TACC.cloud Oauth2 Bearer token with the request
-  2. Include a special URL parameter called a **nonce** with the HTTP request
+Direct POSTs to a **PipelineJobs Indexer** must be authenticated. One usually
+sends a valid TACC.cloud Oauth2 Bearer token with the request (this is the
+default expectation for ``curl`` and ``abaco cli``, but this assumes your
+account has been granted **EXECUTE** rights on the Reactor. For shared
+infrastructure and services, one will instead send a special string known as a
+a **nonce** along with the HTTP request.
 
 JSON Schemas
 ------------
+
+These are the reference documents used to validate messages received by the
+Jobs Indexer reactor.
 
 .. literalinclude:: schemas/index.jsonschema
    :language: json
