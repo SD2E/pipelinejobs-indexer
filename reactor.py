@@ -102,10 +102,10 @@ def main():
             rx.logger.warning('Failed to send "indexed": {}'.format(mexc))
 
     if action in ["index", "urlparams"]:
+        rx.logger.info('Indexing job {}'.format(cb['uuid']))
         try:
             store = ManagedPipelineJobInstance(
-                rx.settings.mongodb, cb["uuid"], agave=rx.client
-            )
+                rx.settings.mongodb, agave=rx.client, uuid=cb['uuid'])
             # TODO - Pass in generated_by=config#pipelines.process_uuid
             resp = store.index(
                 token=cb["token"],
