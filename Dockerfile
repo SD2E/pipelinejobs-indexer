@@ -1,6 +1,6 @@
 FROM sd2e/reactors:python3-edge
 
-ARG DATACATALOG_BRANCH=v2.0.0
+ARG DATACATALOG_BRANCH=2_1
 # RUN pip uninstall --yes datacatalog || true
 RUN pip3 install --upgrade --no-cache-dir \
     git+https://github.com/SD2E/python-datacatalog.git@${DATACATALOG_BRANCH}
@@ -14,4 +14,4 @@ ENV CATALOG_ADMIN_TOKEN_LIFETIME=3600
 ENV CATALOG_RECORDS_SOURCE=jobs-indexer
 ENV CATALOG_STORAGE_SYSTEM=data-sd2e-community
 ENV CATALOG_LOG_VERBOSE=0
-ENV CATALOG_LOG_LEVEL=DEBUG
+ENV CATALOG_LOG_LEVEL=INFO
