@@ -109,11 +109,13 @@ def main():
             # TODO - Pass in generated_by=config#pipelines.process_uuid
             resp = store.index(
                 token=cb["token"],
-                transition=True,
+                transition=False,
                 filters=cb["filters"],
                 generated_by=[rx.settings.pipelines.process_uuid],
             )
-            # resp = store.index_archive_path(filters=cb['filters'], processing_level=cb['level'])
+
+            rx.logger.info('store.index response was class {}'.type(resp))
+
             if isinstance(resp, list):
                 rx.logger.info(
                     "Indexed {} files to PipelineJob {}. ({} usec)".format(
@@ -123,10 +125,10 @@ def main():
 
                 # Send 'indexed' event to job via PipelineJobsManager
                 try:
-                    resp = store.indexed(token=cb["token"])
-                    # job_manager_id = rx.settings.pipelines.job_manager_id
-                    # mgr_mes = {'uuid': cb['uuid'], 'name': 'indexed'}
-                    # rx.send_message(job_manager_id, mgr_mes)
+                    # resp = store.indexed(token=cb["token"])
+                    job_manager_id = rx.settings.pipelines.job_manager_id
+                    mgr_mes = {'uuid': cb['uuid'], 'name': 'indexed'}
+                    rx.send_message(job_manager_id, mgr_mes)
                 except Exception as mexc:
                     rx.logger.warning('Failed to send "indexed": {}'.format(mexc))
             else:
