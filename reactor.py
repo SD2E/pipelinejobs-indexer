@@ -43,9 +43,10 @@ def main():
         for a in ["index", "indexed"]:
             try:
                 rx.logger.debug("Checking against schema {}".format(a))
-                rx.validate_message(
-                    mes, messageschema="/schemas/" + a + ".jsonschema", permissive=False
-                )
+                rx.validate_message(mes,
+                                    messageschema="/schemas/" + a +
+                                    ".jsonschema",
+                                    permissive=False)
                 action = a
                 break
             except Exception as exc:
@@ -73,8 +74,7 @@ def main():
     try:
         for param, key, default in PARAMS:
             cb[key] = mes.get(
-                param, rx.context.get(param, os.environ.get(param, default))
-            )
+                param, rx.context.get(param, os.environ.get(param, default)))
             rx.logger.debug("param:{}={}".format(param, cb[key]))
     except Exception as exc:
         rx.on_failure(exc)
@@ -91,21 +91,20 @@ def main():
     # Simple case - we're just processing 'indexed'
     if action == "indexed":
         try:
-            store = ManagedPipelineJobInstance(
-                rx.settings.mongodb, cb["uuid"], agave=rx.client
-            )
+            store = ManagedPipelineJobInstance(rx.settings.mongodb,
+                                               cb["uuid"],
+                                               agave=rx.client)
             resp = store.indexed(token=cb["token"])
-            # job_manager_id = rx.settings.pipelines.job_manager_id
-            # mgr_mes = {'uuid': cb['uuid'], 'name': 'indexed'}
-            # rx.send_message(job_manager_id, mgr_mes)
+            rx.on_success('Processed indexed event for {0}'.format(cb['uuid']))
         except Exception as mexc:
-            rx.logger.warning('Failed to send "indexed": {}'.format(mexc))
+            rx.on_failure('Failed to handle indexed event: {}', mexc)
 
     if action in ["index", "urlparams"]:
         rx.logger.info('Indexing job {}'.format(cb['uuid']))
         try:
-            store = ManagedPipelineJobInstance(
-                rx.settings.mongodb, agave=rx.client, uuid=cb['uuid'])
+            store = ManagedPipelineJobInstance(rx.settings.mongodb,
+                                               agave=rx.client,
+                                               uuid=cb['uuid'])
             # TODO - Pass in generated_by=config#pipelines.process_uuid
             resp = store.index(
                 token=cb["token"],
@@ -114,29 +113,34 @@ def main():
                 generated_by=[rx.settings.pipelines.process_uuid],
             )
 
-            rx.logger.info('store.index response was class {}'.type(resp))
+            # rx.logger.info('store.index response was: {}'.format(resp))
 
             if isinstance(resp, list):
                 rx.logger.info(
                     "Indexed {} files to PipelineJob {}. ({} usec)".format(
-                        len(resp), cb["uuid"], rx.elapsed()
-                    )
-                )
+                        len(resp), cb["uuid"], rx.elapsed()))
 
-                # Send 'indexed' event to job via PipelineJobsManager
+                # Send 'indexed' event to job via PipelineJobsManager (not PipelineJobsIndexer!)
+                # This results in two messages required to move a job to FINISHED from INDEXING
+                # but allows the jobs-manager to subscribe to and acto on the indexed event
                 try:
                     # resp = store.indexed(token=cb["token"])
                     job_manager_id = rx.settings.pipelines.job_manager_id
-                    mgr_mes = {'uuid': cb['uuid'], 'name': 'indexed'}
+                    mgr_mes = {
+                        'uuid': cb['uuid'],
+                        'name': 'indexed',
+                        'data': {
+                            'source': 'jobs-manager.prod'
+                        }
+                    }
                     rx.send_message(job_manager_id, mgr_mes)
+                    rx.on_success('Sent indexed event for {0}'.format(
+                        cb['uuid']))
                 except Exception as mexc:
-                    rx.logger.warning('Failed to send "indexed": {}'.format(mexc))
+                    rx.on_failure('Failed to send indexed event', mexc)
             else:
-                rx.logger.info(
-                    "Indexed and transitioned to {}".format(
-                        resp.get("state", "Unknown")
-                    )
-                )
+                rx.logger.info("Indexed and transitioned to {0}".format(
+                    resp.get("state", "Unknown")))
         except Exception as iexc:
             rx.on_failure("Failed to accomplish indexing", iexc)
     else:
