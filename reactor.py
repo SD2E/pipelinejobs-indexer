@@ -26,7 +26,7 @@ def minify_job_dict(post_dict):
 
 
 def forward_event(uuid, event, state, data={}, robj=None):
-    # Propagate non-index events to event-manager via message
+    # Propagate non-index events to events-manager via message
     # jobs-indexer needs to implement propagation for itself to ensure that
     # job terminal state is captured and sent along correctly
     try:
@@ -36,7 +36,7 @@ def forward_event(uuid, event, state, data={}, robj=None):
             'job_state': state,
             'data': data
         }
-        resp = robj.send_message('event-manager.prod',
+        resp = robj.send_message('events-manager.prod',
                                  handled_event_body,
                                  retryMaxAttempts=3)
         return True
@@ -116,9 +116,9 @@ def main():
                                                cb["uuid"],
                                                agave=rx.client)
             resp = store.indexed(token=cb["token"])
-            # notify events manager that we got an 'indexed' event
-            forward_event(cb['uuid'], 'indexed', resp.get('state', 'UNKNOWN'),
-                          {}, rx)
+
+            # notify events manager that we processed an 'indexed' event
+            forward_event(cb['uuid'], 'indexed', 'FINISHED', {}, rx)
             rx.on_success('Processed indexed event for {0}'.format(cb['uuid']))
         except Exception as mexc:
             rx.on_failure('Failed to handle indexed event: {}', mexc)
@@ -130,15 +130,16 @@ def main():
                                                agave=rx.client,
                                                uuid=cb['uuid'])
             # TODO - Pass in generated_by=config#pipelines.process_uuid
+
+            # notify events manager that we got an 'index' event
+            forward_event(cb['uuid'], 'index', 'INDEXING', {}, rx)
+
             resp = store.index(
                 token=cb["token"],
                 transition=False,
                 filters=cb["filters"],
                 generated_by=[rx.settings.pipelines.process_uuid],
             )
-            # notify events manager that we got an 'index' event
-            forward_event(cb['uuid'], 'index', resp.get('state', 'UNKNOWN'),
-                          {}, rx)
 
             # rx.logger.info('store.index response was: {}'.format(resp))
 
