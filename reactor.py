@@ -25,6 +25,27 @@ def minify_job_dict(post_dict):
     return post_dict
 
 
+def forward_event(uuid, event, state, data={}, robj=None):
+    # Propagate non-index events to event-manager via message
+    # jobs-indexer needs to implement propagation for itself to ensure that
+    # job terminal state is captured and sent along correctly
+    try:
+        handled_event_body = {
+            'job_uuid': uuid,
+            'event_name': event,
+            'job_state': state,
+            'data': data
+        }
+        resp = robj.send_message('event-manager.prod',
+                                 handled_event_body,
+                                 retryMaxAttempts=3)
+        return True
+    except Exception as exc:
+        robj.logger.warning(
+            "Failed to propagate handled({0}) for {1}: {2}".format(
+                event, uuid, exc))
+
+
 def main():
 
     rx = Reactor()
@@ -95,6 +116,9 @@ def main():
                                                cb["uuid"],
                                                agave=rx.client)
             resp = store.indexed(token=cb["token"])
+            # notify events manager that we got an 'indexed' event
+            forward_event(cb['uuid'], 'indexed', resp.get('state', 'UNKNOWN'),
+                          {}, rx)
             rx.on_success('Processed indexed event for {0}'.format(cb['uuid']))
         except Exception as mexc:
             rx.on_failure('Failed to handle indexed event: {}', mexc)
@@ -112,6 +136,9 @@ def main():
                 filters=cb["filters"],
                 generated_by=[rx.settings.pipelines.process_uuid],
             )
+            # notify events manager that we got an 'index' event
+            forward_event(cb['uuid'], 'index', resp.get('state', 'UNKNOWN'),
+                          {}, rx)
 
             # rx.logger.info('store.index response was: {}'.format(resp))
 
@@ -134,6 +161,7 @@ def main():
                         }
                     }
                     rx.send_message(job_manager_id, mgr_mes)
+
                     rx.on_success('Sent indexed event for {0}'.format(
                         cb['uuid']))
                 except Exception as mexc:
