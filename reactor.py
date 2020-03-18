@@ -25,7 +25,7 @@ def minify_job_dict(post_dict):
     return post_dict
 
 
-def forward_event(uuid, event, state, data={}, robj=None):
+def forward_event(uuid, event, state=None, data={}, robj=None):
     # Propagate non-index events to events-manager via message
     # jobs-indexer needs to implement propagation for itself to ensure that
     # job terminal state is captured and sent along correctly
@@ -109,16 +109,23 @@ def main():
     #         parsed_filters.append(unquote(f))
     #     cb["filters"] = parsed_filters
 
+    rx.logger.info('Processing event {0} for {1}'.format(action, cb['uuid']))
+
     # Simple case - we're just processing 'indexed'
     if action == "indexed":
+        rx.logger.info('Indexed job {}'.format(cb['uuid']))
         try:
             store = ManagedPipelineJobInstance(rx.settings.mongodb,
-                                               cb["uuid"],
+                                               uuid=cb['uuid'],
                                                agave=rx.client)
-            resp = store.indexed(token=cb["token"])
 
+            store_state = store.state
+            forward_event(cb['uuid'], 'indexed', store_state, {}, rx)
+            resp = store.indexed(token=cb["token"])
             # notify events manager that we processed an 'indexed' event
-            forward_event(cb['uuid'], 'indexed', 'FINISHED', {}, rx)
+            if resp['state'] != store_state:
+                # Only send second event on state transition
+                forward_event(cb['uuid'], 'indexed', resp['state'], {}, rx)
             rx.on_success('Processed indexed event for {0}'.format(cb['uuid']))
         except Exception as mexc:
             rx.on_failure('Failed to handle indexed event: {}', mexc)
@@ -132,7 +139,12 @@ def main():
             # TODO - Pass in generated_by=config#pipelines.process_uuid
 
             # notify events manager that we got an 'index' event
-            forward_event(cb['uuid'], 'index', 'INDEXING', {}, rx)
+            store_state = store.state
+            forward_event(cb['uuid'], 'index', store_state, {}, rx)
+            if store_state != 'INDEXING':
+                # Only send second event on state transition
+                # NOTE - we are introducing a tiny racy condition here because we're sending the event before we handle it. This is done because the handle operation is synchronous and we are trying to signal its beginning.
+                forward_event(cb['uuid'], 'index', 'INDEXING', {}, rx)
 
             resp = store.index(
                 token=cb["token"],
