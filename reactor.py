@@ -38,7 +38,7 @@ def forward_event(uuid, event, state=None, data={}, robj=None):
         }
         resp = robj.send_message('events-manager.prod',
                                  handled_event_body,
-                                 retryMaxAttempts=3)
+                                 retryMaxAttempts=10)
         return True
     except Exception as exc:
         robj.logger.warning(
@@ -50,6 +50,7 @@ def main():
 
     rx = Reactor()
     mes = AttrDict(rx.context.message_dict)
+    rx.logger.info('raw_message: {}'.format(rx.context.raw_message))
 
     if mes == {}:
         try:
@@ -120,12 +121,13 @@ def main():
                                                agave=rx.client)
 
             store_state = store.state
-            forward_event(cb['uuid'], 'indexed', store_state, {}, rx)
+            last_event = store.last_event
+            forward_event(cb['uuid'], 'indexed', store_state, {"last_event": last_event}, rx)
             resp = store.indexed(token=cb["token"])
             # notify events manager that we processed an 'indexed' event
             if resp['state'] != store_state:
                 # Only send second event on state transition
-                forward_event(cb['uuid'], 'indexed', resp['state'], {}, rx)
+                forward_event(cb['uuid'], 'indexed', resp['state'], {"last_event": last_event}, rx)
             rx.on_success('Processed indexed event for {0}'.format(cb['uuid']))
         except Exception as mexc:
             rx.on_failure('Failed to handle indexed event: {}', mexc)
@@ -140,11 +142,15 @@ def main():
 
             # notify events manager that we got an 'index' event
             store_state = store.state
-            forward_event(cb['uuid'], 'index', store_state, {}, rx)
+            last_event = store.last_event
+
+            # forward_event(cb['uuid'], 'index', store_state, {"last_event": last_event}, rx)
             if store_state != 'INDEXING':
                 # Only send second event on state transition
                 # NOTE - we are introducing a tiny racy condition here because we're sending the event before we handle it. This is done because the handle operation is synchronous and we are trying to signal its beginning.
-                forward_event(cb['uuid'], 'index', 'INDEXING', {}, rx)
+                forward_event(cb['uuid'], 'index', 'INDEXING', {"last_event": last_event}, rx)
+            else:
+                forward_event(cb['uuid'], 'index', store_state, {"last_event": last_event}, rx)
 
             resp = store.index(
                 token=cb["token"],
@@ -173,7 +179,7 @@ def main():
                             'source': 'jobs-manager.prod'
                         }
                     }
-                    rx.send_message(job_manager_id, mgr_mes)
+                    rx.send_message(job_manager_id, mgr_mes, retryMaxAttempts=10)
 
                     rx.on_success('Sent indexed event for {0}'.format(
                         cb['uuid']))
