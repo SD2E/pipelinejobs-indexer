@@ -122,12 +122,16 @@ def main():
 
             store_state = store.state
             last_event = store.last_event
-            forward_event(cb['uuid'], 'indexed', store_state, {"last_event": last_event}, rx)
+            if rx.settings.state_enter:
+                forward_event(cb['uuid'], 'indexed', store_state,
+                              {"last_event": last_event}, rx)
+
             resp = store.indexed(token=cb["token"])
             # notify events manager that we processed an 'indexed' event
-            if resp['state'] != store_state:
-                # Only send second event on state transition
-                forward_event(cb['uuid'], 'indexed', resp['state'], {"last_event": last_event}, rx)
+            if rx.settings.state_exit:
+                forward_event(cb['uuid'], 'indexed', resp['state'],
+                              {"last_event": resp['last_event']}, rx)
+
             rx.on_success('Processed indexed event for {0}'.format(cb['uuid']))
         except Exception as mexc:
             rx.on_failure('Failed to handle indexed event: {}', mexc)
@@ -143,14 +147,9 @@ def main():
             # notify events manager that we got an 'index' event
             store_state = store.state
             last_event = store.last_event
-
-            # forward_event(cb['uuid'], 'index', store_state, {"last_event": last_event}, rx)
-            if store_state != 'INDEXING':
-                # Only send second event on state transition
-                # NOTE - we are introducing a tiny racy condition here because we're sending the event before we handle it. This is done because the handle operation is synchronous and we are trying to signal its beginning.
-                forward_event(cb['uuid'], 'index', 'INDEXING', {"last_event": last_event}, rx)
-            else:
-                forward_event(cb['uuid'], 'index', store_state, {"last_event": last_event}, rx)
+            if rx.settings.state_enter:
+                forward_event(cb['uuid'], 'index', 'INDEXING',
+                              {"last_event": last_event}, rx)
 
             resp = store.index(
                 token=cb["token"],
@@ -158,6 +157,15 @@ def main():
                 filters=cb["filters"],
                 generated_by=[rx.settings.pipelines.process_uuid],
             )
+
+            if rx.settings.state_exit:
+                # because the index handler returns a list, we have to query the job in order to
+                # know its state and last event
+                updated_store = ManagedPipelineJobInstance(rx.settings.mongodb,
+                                                           agave=rx.client,
+                                                           uuid=cb['uuid'])
+                forward_event(cb['uuid'], 'index', updated_store.state,
+                              {"last_event": updated_store.last_event}, rx)
 
             # rx.logger.info('store.index response was: {}'.format(resp))
 
@@ -179,7 +187,9 @@ def main():
                             'source': 'jobs-manager.prod'
                         }
                     }
-                    rx.send_message(job_manager_id, mgr_mes, retryMaxAttempts=10)
+                    rx.send_message(job_manager_id,
+                                    mgr_mes,
+                                    retryMaxAttempts=10)
 
                     rx.on_success('Sent indexed event for {0}'.format(
                         cb['uuid']))
