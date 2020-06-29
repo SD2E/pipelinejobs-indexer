@@ -29,21 +29,24 @@ def forward_event(uuid, event, state=None, data={}, robj=None):
     # Propagate non-index events to events-manager via message
     # jobs-indexer needs to implement propagation for itself to ensure that
     # job terminal state is captured and sent along correctly
-    try:
-        handled_event_body = {
-            'job_uuid': uuid,
-            'event_name': event,
-            'job_state': state,
-            'data': data
-        }
-        resp = robj.send_message('events-manager.prod',
-                                 handled_event_body,
-                                 retryMaxAttempts=10)
+    if robj.settings['standalone'] is not True:
+        try:
+            handled_event_body = {
+                'job_uuid': uuid,
+                'event_name': event,
+                'job_state': state,
+                'data': data
+            }
+            resp = robj.send_message('events-manager.prod',
+                                     handled_event_body,
+                                     retryMaxAttempts=10)
+            return True
+        except Exception as exc:
+            robj.logger.warning(
+                "Failed to propagate handled({0}) for {1}: {2}".format(
+                    event, uuid, exc))
+    else:
         return True
-    except Exception as exc:
-        robj.logger.warning(
-            "Failed to propagate handled({0}) for {1}: {2}".format(
-                event, uuid, exc))
 
 
 def main():
@@ -122,11 +125,16 @@ def main():
 
             store_state = store.state
             last_event = store.last_event
+
+            # notify events manager that we are planning to process an 'indexed' event
             if rx.settings.state_enter:
                 forward_event(cb['uuid'], 'indexed', store_state,
                               {"last_event": last_event}, rx)
 
+            # This is where the actual indexed event is handled
+            # (Job.state is updated and history amended)
             resp = store.indexed(token=cb["token"])
+
             # notify events manager that we processed an 'indexed' event
             if rx.settings.state_exit:
                 forward_event(cb['uuid'], 'indexed', resp['state'],
@@ -179,14 +187,25 @@ def main():
                 # but allows the jobs-manager to subscribe to and acto on the indexed event
                 try:
                     # resp = store.indexed(token=cb["token"])
-                    job_manager_id = rx.settings.pipelines.job_manager_id
-                    mgr_mes = {
-                        'uuid': cb['uuid'],
-                        'name': 'indexed',
-                        'data': {
-                            'source': 'jobs-manager.prod'
+                    if rx.settings['standalone'] is True:
+                        job_manager_id = rx.uid
+                        mgr_mes = {
+                            'uuid': cb['uuid'],
+                            'name': 'indexed',
+                            'data': {
+                                'source': 'jobs-indexer.standalone'
+                            }
                         }
-                    }
+                    else:
+                        job_manager_id = rx.settings.pipelines.job_manager_id
+                        mgr_mes = {
+                            'uuid': cb['uuid'],
+                            'name': 'indexed',
+                            'data': {
+                                'source': 'jobs-manager.prod'
+                            }
+                        }
+
                     rx.send_message(job_manager_id,
                                     mgr_mes,
                                     retryMaxAttempts=10)
