@@ -2,6 +2,11 @@
 state_enter: false
 state_exit: true
 
+# Whether the deployed actor works as part of an ensemble or 
+# on its own (the latter is appropriate for large batches 
+# of re-indexing jobs)
+standalone: false
+
 debug: false
 storagesystems:
   data-sd2e-community:

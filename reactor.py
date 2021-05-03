@@ -191,10 +191,7 @@ def main():
                         job_manager_id = rx.uid
                         mgr_mes = {
                             'uuid': cb['uuid'],
-                            'name': 'indexed',
-                            'data': {
-                                'source': 'jobs-indexer.standalone'
-                            }
+                            'name': 'indexed'
                         }
                     else:
                         job_manager_id = rx.settings.pipelines.job_manager_id
